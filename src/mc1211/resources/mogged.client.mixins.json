@@ -1,0 +1,16 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "mogged.client.mixin",
+	"compatibilityLevel": "${mixin_compat}",
+	"client": [
+		"AbstractClientPlayerMixin",
+		"PlayerInfoMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

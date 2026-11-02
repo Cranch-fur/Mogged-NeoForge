@@ -1,0 +1,31 @@
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="GPL-3.0-only"
+
+[[mods]]
+modId="mogged"
+version="${mod_version}"
+displayName="Mogged"
+authors="@cranch_fur, @murkatel"
+logoFile="assets/mogged/icon.png"
+description='''Switch between your Default skin and two custom presets with one key and a smooth animation. HD skins, capes and elytra, a built-in skin editor, and friends with the mod see it too.'''
+
+# NeoForge reads the mod's Mixin configs from here (not from the jar's manifest)
+[[mixins]]
+config="mogged.client.mixins.json"
+
+# Works without the mod on the other side: the mod's messages are optional (ModNetworking), so a vanilla
+# server, or players without it, are fine
+[[dependencies.mogged]]
+    modId="neoforge"
+    type="required"
+    versionRange="${neoforge_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.mogged]]
+    modId="minecraft"
+    type="required"
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"

@@ -1,0 +1,28 @@
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="GPL-3.0-only"
+
+[[mods]]
+modId="mogged"
+version="${mod_version}"
+displayName="Mogged"
+authors="@cranch_fur, @murkatel"
+logoFile="assets/mogged/icon.png"
+description='''Switch between your Default skin and two custom presets with one key and a smooth animation. HD skins, capes and elytra, a built-in skin editor, and friends with the mod see it too.'''
+# Works without the mod on the other side: a vanilla server, or players without it, are fine
+displayTest="IGNORE_ALL_VERSION"
+
+# NeoForge for 1.20.1 is a fork of Forge 47 and still calls itself "forge"
+[[dependencies.mogged]]
+    modId="forge"
+    mandatory=true
+    versionRange="${neoforge_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.mogged]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"

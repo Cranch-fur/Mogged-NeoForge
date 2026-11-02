@@ -1,0 +1,136 @@
+plugins {
+	id 'java'
+	id 'idea'
+	// ModDevGradle: 'moddev' for NeoForge (1.21.1 and 26.x), 'moddev.legacyforge' for NeoForge 47.1 on 1.20.1
+	id 'net.neoforged.moddev' version '[2.0.141,2.1)' apply false
+	id 'net.neoforged.moddev.legacyforge' version '[2.0.141,2.1)' apply false
+}
+
+// Target Minecraft version: ./gradlew build -Pmc=1.21.1 (default comes from gradle.properties)
+def mcTarget = providers.gradleProperty("mc").getOrElse(project.default_mc)
+def mcFile = file("versions/${mcTarget}.properties")
+if (!mcFile.exists()) {
+	def supported = file("versions").list().findAll { it.endsWith(".properties") }.collect { it - ".properties" }.sort()
+	throw new GradleException("Unsupported Minecraft version '${mcTarget}'. Supported: ${supported.join(', ')} (use -Pmc=<version>)")
+}
+def mc = new Properties()
+mcFile.withInputStream { mc.load(it) }
+
+// Versions with the same APIs share a "family" of version-specific sources in src/<family>/
+def family = mc.family
+def legacy = mc.legacy.toBoolean()
+def javaVersion = mc.java_version.toInteger()
+
+version = "${project.mod_version}+mc${mcTarget}-neoforge"
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(javaVersion)
+
+// One source set: shared code, shared client code and the family's own code (platform layer, mixins, NeoForge glue)
+sourceSets {
+	main {
+		java.srcDirs = ['src/main/java', 'src/client/java', "src/${family}/java"]
+		resources.srcDirs = ['src/main/resources', "src/${family}/resources"]
+	}
+}
+
+repositories {
+	mavenCentral()
+	maven {
+		name = 'Sponge'
+		url = 'https://repo.spongepowered.org/repository/maven-public/'
+		content { includeGroup 'org.spongepowered' }
+	}
+}
+
+if (legacy) {
+	// 1.20.1: NeoForge 47.1 (net.neoforged:forge). The game runs with SRG names, so the jar is reobfuscated
+	// (reobfJar, which also writes the mixins' refmap); that jar is the one to play with
+	apply plugin: 'net.neoforged.moddev.legacyforge'
+	legacyForge {
+		enable {
+			neoForgeVersion = "${mc.minecraft_version}-${mc.neoforge_version}"
+		}
+		runs {
+			client {
+				client()
+			}
+			server {
+				server()
+			}
+		}
+		mods {
+			mogged {
+				sourceSet sourceSets.main
+			}
+		}
+	}
+	mixin {
+		add sourceSets.main, 'mogged.refmap.json'
+		config 'mogged.client.mixins.json'
+	}
+	dependencies {
+		annotationProcessor "org.spongepowered:mixin:${project.mixin_version}:processor"
+	}
+	tasks.named('jar', Jar) {
+		manifest {
+			// Mixin finds our config through the manifest at runtime (Forge 47)
+			attributes['MixinConfigs'] = 'mogged.client.mixins.json'
+		}
+	}
+} else {
+	// 1.21.1 and 26.x: NeoForge runs with Mojang's names; the mixin config is in neoforge.mods.toml
+	apply plugin: 'net.neoforged.moddev'
+	neoForge {
+		version = mc.neoforge_version
+		runs {
+			client {
+				client()
+			}
+			server {
+				server()
+			}
+		}
+		mods {
+			mogged {
+				sourceSet sourceSets.main
+			}
+		}
+	}
+}
+
+def resourceProps = [
+	mod_version            : project.mod_version,
+	minecraft_version      : mc.minecraft_version,
+	minecraft_version_range: mc.minecraft_version_range,
+	loader_version_range   : mc.loader_version_range,
+	neoforge_version_range : mc.neoforge_version_range,
+	mixin_compat           : mc.mixin_compat
+]
+
+tasks.named('processResources', ProcessResources) {
+	inputs.properties resourceProps
+	filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml', 'mogged.client.mixins.json',
+			'mogged-build.properties', 'pack.mcmeta']) {
+		expand resourceProps
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.release = javaVersion
+	options.encoding = 'UTF-8'
+}
+
+tasks.named('jar', Jar) {
+	manifest {
+		attributes['Implementation-Title'] = 'Mogged'
+		attributes['Implementation-Version'] = project.mod_version
+	}
+	from('LICENSE') {
+		rename { "${it}_mogged" }
+	}
+}
