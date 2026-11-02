@@ -4,7 +4,7 @@
 
 # Mogged for NeoForge
 
-A port of [Mogged](https://github.com/Cranch-fur/Mogged) to NeoForge. It does the
+A port of [Mogged](https://github.com/Cranch-fur/Mogged) to [NeoForge](https://neoforged.net/). It does the
 same things: lets you switch between your own account skin and two custom presets with a single key, with a smooth animated transition. HD skins, capes and elytra, a built-in skin editor, and other players who have the mod see your look too.
 
 The only difference from the Fabric mod: no [Flashback](https://modrinth.com/mod/flashback) support, as that replay mod
@@ -12,7 +12,7 @@ exists for Fabric only.
 
 ## Requirements
 
-| Minecraft | NeoForge | Java |
+| Minecraft | [NeoForge](https://neoforged.net/) | Java |
 |---|---|---|
 | 1.20.1 | 47.1+ | 17 |
 | 1.21.1 | 21.1+ | 21 |
